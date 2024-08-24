@@ -1,36 +1,36 @@
-sealed class JustTree<out T>
-
-data class Leaf<T>(val value: T) : JustTree<T>() {
-    companion object {
-        fun <T> create(value: T): JustTree<T> = Leaf(value)
+sealed class JustTree<out T> {
+    data class Leaf<T>(val value: T) : JustTree<T>() {
+        companion object {
+            fun <T> create(value: T): JustTree<T> = Leaf(value)
+        }
     }
+
+    data class Branch<T>(val left: JustTree<T>, val right: JustTree<T>) : JustTree<T>()
 }
 
-data class Branch<T>(val left: JustTree<T>, val right: JustTree<T>) : JustTree<T>()
-
 private fun <T> JustTree<T>.size(): Int = when (this) {
-    is Leaf -> 1
-    is Branch -> 1 + left.size() + right.size()
+    is JustTree.Leaf -> 1
+    is JustTree.Branch -> 1 + left.size() + right.size()
 }
 
 private fun <T> JustTree<T>.max(f: (T, T) -> T): T = when (this) {
-    is Leaf -> value
-    is Branch -> f(left.max(f), right.max(f))
+    is JustTree.Leaf -> value
+    is JustTree.Branch -> f(left.max(f), right.max(f))
 }
 
 private fun <T> JustTree<T>.depth(): Int = when (this) {
-    is Leaf -> 0
-    is Branch -> 1 + maxOf(left.depth(), right.depth())
+    is JustTree.Leaf -> 0
+    is JustTree.Branch -> 1 + maxOf(left.depth(), right.depth())
 }
 
 private fun <A, B> JustTree<A>.map(f: (A) -> B): JustTree<B> = when (this) {
-    is Leaf -> Leaf(f(value))
-    is Branch -> Branch(left.map(f), right.map(f))
+    is JustTree.Leaf -> JustTree.Leaf(f(value))
+    is JustTree.Branch -> JustTree.Branch(left.map(f), right.map(f))
 }
 
 private fun <A, B> JustTree<A>.fold(leaf: (A) -> B, branch: (B, B) -> B): B = when (this) {
-    is Leaf -> leaf(value)
-    is Branch -> branch(left.fold(leaf, branch), right.fold(leaf, branch))
+    is JustTree.Leaf -> leaf(value)
+    is JustTree.Branch -> branch(left.fold(leaf, branch), right.fold(leaf, branch))
 }
 
 private fun <T> JustTree<T>.sizeF(): Int = fold(
@@ -49,7 +49,7 @@ private fun <T> JustTree<T>.maxF(f: (T, T) -> T): T = fold(
 )
 
 private fun <A, B> JustTree<A>.mapF(f: (A) -> B): JustTree<B> = fold(
-    leaf = { a -> Leaf.create(f(a)) },
-    branch = { a, b -> Branch(a, b) },
+    leaf = { a -> JustTree.Leaf.create(f(a)) },
+    branch = { a, b -> JustTree.Branch(a, b) },
 )
 
