@@ -9,7 +9,7 @@ sealed interface JustOption<out T> {
     companion object {
         fun <T> empty(): JustOption<T> = None
 
-        fun <T> some(value: T): JustOption<T> = JustOption.Some(value)
+        fun <T> some(value: T): JustOption<T> = Some(value)
     }
 }
 
@@ -25,7 +25,7 @@ fun <A> JustOption<A>.getOrElse(default: () -> A): A = when (this) {
     is JustOption.Some -> value
 }
 
-fun <A, B> JustOption<A>.flatMap(f: (A) -> JustOption<B>): JustOption<B> = map(f).getOrElse { JustOption.None }
+fun <A, B> JustOption<A>.flatMap(f: (A) -> JustOption<B>): JustOption<B> = map(f).getOrElse { JustOption.empty() }
 
 fun <A> JustOption<A>.orElse(ob: () -> JustOption<A>): JustOption<A> = map { JustOption.Some(it) }.getOrElse { ob() }
 

@@ -1,0 +1,4 @@
+package rng
+
+interface RNG {
+}

@@ -9,6 +9,8 @@ sealed class JustList<out T> {
             return if (aa.isEmpty()) Nil else Construct(aa[0], of(*tail))
         }
 
+        fun <T> construct(head: T, tail: JustList<T>): JustList<T> = JustList.Construct(head, tail)
+
         fun <T> empty(): JustList<T> = Nil
     }
 }
