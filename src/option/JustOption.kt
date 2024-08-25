@@ -8,11 +8,15 @@ sealed interface JustOption<out T> {
     data object None : JustOption<Nothing>
     companion object {
         fun <T> empty(): JustOption<T> = None
+
+        fun <T> some(value: T): JustOption<T> = JustOption.Some(value)
     }
 }
 
+fun <T> JustOption<T>.isEmpty(): Boolean = this is JustOption.None
+
 fun <A, B> JustOption<A>.map(f: (A) -> B): JustOption<B> = when (this) {
-    JustOption.None -> this as JustOption.None
+    JustOption.None -> JustOption.empty()
     is JustOption.Some -> JustOption.Some(f(value))
 }
 

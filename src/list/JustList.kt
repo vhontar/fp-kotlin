@@ -5,7 +5,7 @@ sealed class JustList<out T> {
     data class Construct<out T>(val head: T, val tail: JustList<T>) : JustList<T>()
     companion object {
         fun <T> of(vararg aa: T): JustList<T> {
-            val tail = aa.sliceArray(1..< aa.size)
+            val tail = aa.sliceArray(1..<aa.size)
             return if (aa.isEmpty()) Nil else Construct(aa[0], of(*tail))
         }
 
@@ -113,25 +113,40 @@ fun <T> JustList<T>.filter(predicate: (T) -> Boolean): JustList<T> =
     flatMap { head -> if (predicate(head)) JustList.of(head) else JustList.Nil }
 
 fun <A, B> JustList<A>.zipWith(other: JustList<A>, f: (A, A) -> B): JustList<B> =
-    when(this) {
+    when (this) {
         JustList.Nil -> JustList.empty()
-        is JustList.Construct -> when(other) {
+        is JustList.Construct -> when (other) {
             JustList.Nil -> JustList.empty()
             is JustList.Construct -> JustList.Construct(f(head, other.head), tail.zipWith(other.tail, f))
         }
     }
 
-tailrec fun <T> JustList<T>.hasSubsequence(other: JustList<T>): Boolean = when(this) {
-    JustList.Nil -> false
-    is JustList.Construct -> when(other) {
-        JustList.Nil -> true
-        is JustList.Construct -> if (head == other.head) {
-            tail.hasSubsequence(other.tail)
-        } else {
-            tail.hasSubsequence(other)
+tailrec fun <T> JustList<T>.startsWith(other: JustList<T>): Boolean =
+    when (this) {
+        JustList.Nil -> other == JustList.Nil
+        is JustList.Construct -> when (other) {
+            JustList.Nil -> true
+            is JustList.Construct -> if (head == other.head) {
+                tail.startsWith(other.tail)
+            } else false
         }
+    }
+
+tailrec fun <T> JustList<T>.hasSubsequence(other: JustList<T>): Boolean = when (this) {
+    JustList.Nil -> false
+    is JustList.Construct -> when (other) {
+        JustList.Nil -> true
+        is JustList.Construct -> if (startsWith(other)) {
+            true
+        } else tail.hasSubsequence(other)
     }
 }
 
 fun <T> JustList<T>.forAll(p: (T) -> Boolean): Boolean =
     foldRight(true) { currentElement, remainingResult -> p(currentElement) && remainingResult }
+
+fun main() {
+    val seb = JustList.of(1, 2, 3, 4, 5, 6)
+    val seb2 = JustList.of(1, 3, 4)
+    println(seb.hasSubsequence(seb2))
+}
