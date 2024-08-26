@@ -5,6 +5,12 @@ import list.JustList
 sealed interface JustEither<out E, out T> {
     data class Left<out E>(val value: E) : JustEither<E, Nothing>
     data class Right<out T>(val value: T) : JustEither<Nothing, T>
+
+    companion object {
+        fun <E, T> left(value: E): JustEither<E, T> = Left(value)
+
+        fun <E, T> right(value: T): JustEither<E, T> = Right(value)
+    }
 }
 
 fun <T> catch(f: () -> T): JustEither<Exception, T> =
@@ -35,8 +41,8 @@ fun <E, A, B, C> JustEither<E, A>.map2(other: JustEither<E, B>, f: (A, B) -> C):
         other.map { b -> f(a, b) }
     }
 
-fun <E, T> T.toJustEither(): JustEither<E, T> = when (this) {
-    is JustEither.Left<*> -> this as JustEither.Left<E> // awkward :thinking:
+fun <E, T> T.toJustEither(): JustEither<E, T> = when {
+    this is JustEither.Left<*> -> this as JustEither.Left<E> // awkward :thinking:
     else -> JustEither.Right(value = this)
 }
 

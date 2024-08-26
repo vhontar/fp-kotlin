@@ -29,7 +29,7 @@ fun <A, B> JustOption<A>.flatMap(f: (A) -> JustOption<B>): JustOption<B> = map(f
 
 fun <A> JustOption<A>.orElse(ob: () -> JustOption<A>): JustOption<A> = map { JustOption.Some(it) }.getOrElse { ob() }
 
-fun <A> JustOption<A>.filter(f: (A) -> Boolean): JustOption<A> = flatMap { if (f(it)) this else JustOption.None }
+fun <A> JustOption<A>.filter(f: (A) -> Boolean): JustOption<A> = flatMap { if (f(it)) this else JustOption.empty() }
 
 fun <A, B, C> JustOption<A>.map2(other: JustOption<B>, f: (A, B) -> C): JustOption<C> =
     flatMap { a ->
@@ -45,25 +45,25 @@ fun <A> sequenceJustList(xs: JustList<JustOption<A>>): JustOption<JustList<A>> =
 
 fun <T : Any?> T.asJustOption(): JustOption<T> = when {
     this is JustOption.None -> this
-    this == null -> JustOption.None
+    this == null -> JustOption.empty()
     else -> JustOption.Some(value = this)
 }
 
 fun <A, B> traverse(xs: List<A>, f: (A) -> JustOption<B>): JustOption<List<B>> = xs.map {
     when (val option = f(it)) {
-        JustOption.None -> return JustOption.None
+        JustOption.None -> return JustOption.empty()
         is JustOption.Some -> option.value
     }
 }.asJustOption()
 
 fun <A, B> traverseJustList(xs: JustList<A>, f: (A) -> JustOption<B>): JustOption<JustList<B>> = when (xs) {
-    JustList.Nil -> JustOption.Some(JustList.Nil)
+    JustList.Nil -> JustOption.Some(JustList.empty())
     is JustList.Construct -> f(xs.head).map2(traverseJustList(xs.tail, f)) { a, b -> JustList.Construct(a, b) }
 }
 
-fun <A> catchesOption(f: () -> A): JustOption<A> =
+fun <A> catch(f: () -> A): JustOption<A> =
     try {
         JustOption.Some(f())
     } catch (e: Throwable) {
-        JustOption.None
+        JustOption.empty()
     }
